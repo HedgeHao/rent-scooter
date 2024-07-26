@@ -37,5 +37,5 @@ WHERE id = 1;
 
 * Select
 ```postgres
-select * from "user"; -- Table name must be in double quote
+select * from "user";
 ```

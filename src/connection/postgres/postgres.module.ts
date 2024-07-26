@@ -2,9 +2,13 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { UserEntity } from './entity/user.entity';
+import { ScooterEntity } from './entity/scooter.entity';
+import { OrderEntity } from './entity/order.entity';
 
 const entityList = [
-    UserEntity
+    UserEntity,
+    ScooterEntity,
+    OrderEntity
 ]
 
 @Module({
