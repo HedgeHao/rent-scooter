@@ -1,19 +1,18 @@
-import { Controller, Delete, Post, Put, UseInterceptors } from "@nestjs/common";
-import { RedisService } from "../connection/redis/redis.service";
+import { Body, Controller, Delete, Post, Put, UseInterceptors } from "@nestjs/common";
 import { ResponseInterceptor } from "../interceptor";
+import { CreateOrderDto, OrderReq } from "./order.dto";
+import { OrderService } from "./order.service";
 
 @Controller('/order')
 @UseInterceptors(ResponseInterceptor)
 export class OrderController {
     constructor(
-        private readonly redisService: RedisService
+        private readonly orderService: OrderService
     ) { }
 
     @Post('/create')
-    async createOrder() {
-        const lock = await this.redisService.preempt('lock', 30)
-        console.log(lock ? 'Good to go' : 'Is Locked')
-        return 'createOrder'
+    async createOrder(@Body() body: CreateOrderDto.Request): Promise<CreateOrderDto.Response> {
+        return await this.orderService.createOrderService()
     }
 
     @Put('/rent_start')
