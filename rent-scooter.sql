@@ -30,7 +30,16 @@ CREATE TABLE "order" (
 
 -- Data
 truncate table "user" CASCADE;
+truncate table "scooter" CASCADE;
 truncate table "order";
-truncate table "scooter";
-INSERT INTO "user" (name, age, height, username, password) VALUES ('Josh', 30, 180.1, 'joshchiu', '1234');
-INSERT INTO "user" (name, age, height, username, password) VALUES ('Yuri', 22, 163.4, 'yuri', '1234');
+INSERT INTO "user" (name, age, height, username, password) VALUES
+  ('Josh', 30, 180.1, 'joshchiu', '1234'),
+  ('Yuri', 22, 163.4, 'yuri', '1234');
+
+INSERT INTO scooter (name, power, status) VALUES
+('Scooter A', 100.0, 0),
+('Scooter B', 87.65, 0),
+('Scooter C', 45.67, 0),
+('Scooter D', 23.45, 0),
+('Scooter E', 7.8, 0);
+
