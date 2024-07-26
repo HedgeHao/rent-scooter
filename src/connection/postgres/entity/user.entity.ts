@@ -1,26 +1,30 @@
-import { Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
-import { OrderEntity } from "./order.entity";
+import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm'
+import { OrderEntity } from './order.entity'
 
 @Entity('user')
 export class UserEntity {
-    @PrimaryColumn({ type: 'int' })
-    id!: number
+  constructor(fields?: Partial<UserEntity> & Pick<UserEntity, 'name' | 'age' | 'height' | 'username' | 'password'>) {
+    Object.assign(this, fields)
+  }
 
-    @Column('varchar')
-    name!: string
+  @PrimaryColumn({ type: 'int' })
+  id!: number
 
-    @Column('int', { nullable: true })
-    age!: number | null
+  @Column('varchar')
+  name!: string
 
-    @Column('decimal', { nullable: true })
-    height!: number | null
+  @Column('int', { nullable: true })
+  age!: number | null
 
-    @Column('varchar', { nullable: false })
-    username!: string
+  @Column('decimal', { nullable: true })
+  height!: number | null
 
-    @Column('varchar')
-    password!: string
+  @Column('varchar', { nullable: false })
+  username!: string
 
-    @OneToMany(() => OrderEntity, order => order.user)
-    order: OrderEntity[];
+  @Column('varchar')
+  password!: string
+
+  @OneToMany(() => OrderEntity, (order) => order.user)
+  order: OrderEntity[]
 }

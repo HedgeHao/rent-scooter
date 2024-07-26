@@ -29,7 +29,7 @@ export class OrderService {
       throw new Error('User not found')
     }
 
-    const scooter = await this.userRepository.findOne({
+    const scooter = await this.scootersRepository.findOne({
       where: { id: req.scooterID }
     })
 
@@ -41,7 +41,7 @@ export class OrderService {
     const redisClient = this.redisService.getClient()
 
     const scooterLockKey = `${Define.RedisKey.scooterOccupiedLock}${req.scooterID}`
-    const userLockKey = `${Define.RedisKey.userRiddingLock}${req.userID}`
+    const userLockKey = `${Define.RedisKey.userReservingLock}${req.userID}`
 
     if ((await redisClient.exists(scooterLockKey)) || (await redisClient.exists(userLockKey))) {
       throw 'Still in lock'
@@ -49,7 +49,7 @@ export class OrderService {
 
     //TODO: Still might be race condition between two locks. Use LUA for atomic operation
     const scooterLock = await this.redisService.lock(scooterLockKey, Define.Order.defaultReservedTimeout, req.userID)
-    const userLock = await this.redisService.lock(userLockKey, null, req.userID)
+    const userLock = await this.redisService.lock(userLockKey, Define.Order.defaultReservedTimeout, req.userID)
 
     if (!scooterLock || !userLock) {
       // Rollback
@@ -60,7 +60,14 @@ export class OrderService {
     }
 
     // Create order
+    const order = await this.orderRepository.save(
+      new OrderEntity({
+        scooter: scooter,
+        user: user,
+        status: Define.OrderStatus.reserved
+      })
+    )
 
-    return new CreateOrderDto.Response()
+    return order
   }
 }

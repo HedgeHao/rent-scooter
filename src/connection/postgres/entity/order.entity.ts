@@ -1,30 +1,40 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { UserEntity } from './user.entity';
-import { ScooterEntity } from './scooter.entity';
-import { Define } from 'src/define';
+import { Define } from 'src/define'
+import { unixTime } from 'src/util'
+import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { ScooterEntity } from './scooter.entity'
+import { UserEntity } from './user.entity'
 
 @Entity('order')
 export class OrderEntity {
-    @PrimaryGeneratedColumn()
-    id: number;
+  constructor(fields?: Partial<OrderEntity> & Pick<OrderEntity, 'scooter' | 'user' | 'status'>) {
+    Object.assign(this, fields)
+  }
 
-    @ManyToOne(() => UserEntity, user => user.order)
-    @JoinColumn()
-    user: UserEntity;
+  @PrimaryGeneratedColumn()
+  id!: number
 
-    @ManyToOne(() => ScooterEntity, scooter => scooter.rents)
-    @JoinColumn()
-    scooter: ScooterEntity;
+  @ManyToOne(() => UserEntity, (user) => user.order)
+  @JoinColumn({ name: 'user_id' })
+  user!: UserEntity
 
-    @Column({ type: 'timestamp' })
-    reservationTime: Date;
+  @ManyToOne(() => ScooterEntity, (scooter) => scooter.orders)
+  @JoinColumn({ name: 'scooter_id' })
+  scooter!: ScooterEntity
 
-    @Column({ type: 'timestamp', nullable: true })
-    startTime: Date;
+  @Column({ name: 'reservation_time', type: 'int' })
+  reservationTime!: number
 
-    @Column({ type: 'timestamp', nullable: true })
-    endTime: Date;
+  @Column({ name: 'start_time', type: 'int', nullable: true })
+  startTime!: number
 
-    @Column({ type: 'int', })
-    status: Define.OrderStatus.Type;
+  @Column({ name: 'end_time', type: 'int', nullable: true })
+  endTime!: number
+
+  @Column({ type: 'int' })
+  status!: Define.OrderStatus.Type
+
+  @BeforeInsert()
+  beforeInsert() {
+    this.reservationTime = unixTime()
+  }
 }

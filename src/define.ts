@@ -13,11 +13,7 @@ export namespace Define {
     export const reserved = 2
     export const completed = 3
 
-    export type Type =
-      | typeof cancelled
-      | typeof active
-      | typeof reserved
-      | typeof completed
+    export type Type = typeof cancelled | typeof active | typeof reserved | typeof completed
   }
 
   export namespace ResponseCode {
@@ -25,19 +21,16 @@ export namespace Define {
     export const notExist = 404
     export const notLogin = 426
     export const ok = 200
-    export type Type =
-      | typeof fail
-      | typeof notExist
-      | typeof notLogin
-      | typeof ok
+    export type Type = typeof fail | typeof notExist | typeof notLogin | typeof ok
   }
 
   export namespace RedisKey {
     export const scooterOccupiedLock = 'scooter_occupied_'
+    export const userReservingLock = 'user_reserving_'
     export const userRiddingLock = 'user_ridding_'
   }
 
   export namespace Order {
-    export const defaultReservedTimeout = 600
+    export const defaultReservedTimeout = 60
   }
 }
