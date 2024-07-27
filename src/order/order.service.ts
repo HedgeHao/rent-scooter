@@ -19,7 +19,25 @@ export class OrderService {
     @InjectRepository(ScooterEntity)
     private scootersRepository: Repository<ScooterEntity>,
     private readonly redisService: RedisService
-  ) {}
+  ) {
+    const subscriber = this.redisService.getSubscriber()
+    subscriber.subscribe('__keyevent@0__:expired', (err, count) => {
+      if (err) {
+        console.error('Cannot subscribe', err)
+      } else {
+        subscriber.on('message', (channel: string, message: string) => {
+          console.log('debug')
+          console.log(message)
+          const match = message.match(/_(\d+)$/)
+          if (match) {
+            console.log(match)
+            const orderID = parseInt(match[1], 10)
+            this.reservationExpired(orderID)
+          }
+        })
+      }
+    })
+  }
 
   async createOrderService(req: CreateOrderDto.Request): Promise<CreateOrderDto.Response> {
     const user = await this.userRepository.findOne({
@@ -72,7 +90,7 @@ export class OrderService {
   }
 
   async reservationExpired(orderID: number): Promise<void> {
-    const order = await this.orderRepository.findOne({ where: { id: orderID } })
+    const order = await this.orderRepository.findOne({ where: { id: orderID }, relations: ['user', 'scooter'] })
 
     const redisClient = this.redisService.getClient()
     const scooterLockKey = Define.RedisKey.scooterOccupiedLock(order.scooter.id)
@@ -85,7 +103,7 @@ export class OrderService {
   }
 
   async startRent(req: StartRentDto.Request): Promise<StartRentDto.Response> {
-    let order = await this.orderRepository.findOne({ where: { id: req.orderID } })
+    let order = await this.orderRepository.findOne({ where: { id: req.orderID }, relations: ['user', 'scooter'] })
 
     if (!order) {
       throw Error('Not Found')

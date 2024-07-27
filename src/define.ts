@@ -42,6 +42,6 @@ export namespace Define {
   }
 
   export namespace Order {
-    export const defaultReservedTimeout = 60
+    export const defaultReservedTimeout = 5
   }
 }

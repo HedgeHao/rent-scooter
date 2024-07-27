@@ -13,21 +13,15 @@ export class RedisService {
     }
 
     this.client = new Redis(redisConfig)
-
     this.subscriber = new Redis(redisConfig)
-    this.subscriber.subscribe('__keyevent@0__:expired', (err, count) => {
-      if (err) {
-        console.error('Cannot subscribe', err)
-      } else {
-        this.subscriber.on('message', (channel: string, message: string) => {
-          console.log(`${message} has expired`)
-        })
-      }
-    })
   }
 
   getClient(): Redis {
     return this.client
+  }
+
+  getSubscriber(): Redis {
+    return this.subscriber
   }
 
   async lock(key: string, timeout?: number, value?: RedisValue): Promise<boolean> {
