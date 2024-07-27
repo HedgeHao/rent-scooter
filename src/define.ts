@@ -12,8 +12,10 @@ export namespace Define {
     export const active = 1
     export const reserved = 2
     export const completed = 3
+    export const error = 4
+    export const expired = 5
 
-    export type Type = typeof cancelled | typeof active | typeof reserved | typeof completed
+    export type Type = typeof cancelled | typeof active | typeof reserved | typeof completed | typeof error | typeof expired
   }
 
   export namespace ResponseCode {
@@ -25,8 +27,17 @@ export namespace Define {
   }
 
   export namespace RedisKey {
-    export const scooterOccupiedLock = 'scooter_occupied_'
-    export const userReservingLock = 'user_reserving_'
+    export const scooterOccupiedPrefix = 'scooter_occupied_'
+    export const scooterOccupiedLock = (scooterID: number) => `${scooterOccupiedPrefix}${scooterID}`
+    export const userReservingPrefix = 'user_reserving_'
+    export const userReservingLock = (scooterID: number) => `${userReservingPrefix}${scooterID}`
+    export const reservationPrefix = 'reservation_'
+    export const reservationLock = (scooterID: number) => `${reservationPrefix}${scooterID}`
+
+    export type reservationHash = {
+      userID: number
+      scooterID: number
+    }
     export const userRiddingLock = 'user_ridding_'
   }
 

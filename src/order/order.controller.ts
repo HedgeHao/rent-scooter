@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Post, Put, UseInterceptors } from '@nestjs/common'
+import { Body, Controller, Delete, Post, UseInterceptors } from '@nestjs/common'
 import { ResponseInterceptor } from '../interceptor'
-import { CreateOrderDto } from './order.dto'
+import { CreateOrderDto, StartRentDto } from './order.dto'
 import { OrderService } from './order.service'
 
 @Controller('/order')
@@ -13,12 +13,12 @@ export class OrderController {
     return await this.orderService.createOrderService(body)
   }
 
-  @Put('/rent_start')
-  async rentStart() {
-    return 'rentStart'
+  @Post('/rent_start')
+  async rentStart(@Body() body: StartRentDto.Request) {
+    return await this.orderService.startRent(body)
   }
 
-  @Put('/rent_finish')
+  @Post('/rent_finish')
   async rentFinish() {
     return 'rentFinish'
   }
