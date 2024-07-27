@@ -2,7 +2,7 @@ CREATE DATABASE rent_scooter;
 
 DROP TABLE "user" CASCADE;
 DROP TABLE "scooter" CASCADE;
-DROP TABLE "order";
+DROP TABLE "rent";
 CREATE TABLE scooter (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255),
@@ -19,7 +19,7 @@ CREATE TABLE "user" (
   password VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE "order" (
+CREATE TABLE "rent" (
   id SERIAL PRIMARY KEY,
   user_id INTEGER,
   scooter_id INTEGER,
@@ -34,7 +34,7 @@ CREATE TABLE "order" (
 -- Data
 TRUNCATE TABLE "user" CASCADE;
 TRUNCATE TABLE "scooter" CASCADE;
-TRUNCATE TABLE "order";
+TRUNCATE TABLE "rent";
 INSERT INTO "user" (name, age, height, username, password) VALUES
   ('Josh', 30, 180.1, 'joshchiu', '1234'),
   ('Yuri', 22, 163.4, 'yuri', '1234');

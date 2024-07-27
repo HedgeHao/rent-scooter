@@ -1,5 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm'
-import { OrderEntity } from './order.entity'
+import { RentEntity } from './rent.entity'
 
 @Entity('user')
 export class UserEntity {
@@ -25,6 +25,6 @@ export class UserEntity {
   @Column('varchar')
   password!: string
 
-  @OneToMany(() => OrderEntity, (order) => order.user)
-  order: OrderEntity[]
+  @OneToMany(() => RentEntity, (rent) => rent.user)
+  rent: RentEntity[]
 }

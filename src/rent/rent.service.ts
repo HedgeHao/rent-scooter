@@ -4,17 +4,17 @@ import { KafkaService } from 'src/connection/kafka/kafka.service'
 import { Define } from 'src/define'
 import { unixTime } from 'src/util'
 import { Repository } from 'typeorm'
-import { OrderEntity } from '../connection/postgres/entity/order.entity'
+import { RentEntity } from '../connection/postgres/entity/rent.entity'
 import { ScooterEntity } from '../connection/postgres/entity/scooter.entity'
 import { UserEntity } from '../connection/postgres/entity/user.entity'
 import { RedisService } from '../connection/redis/redis.service'
-import { CancelRentDto, CreateOrderDto, FinishRentDto as RentFinishDto, StartRentDto } from './order.dto'
+import { CancelRentDto, CreateRentDto, FinishRentDto as RentFinishDto, StartRentDto } from './rent.dto'
 
 @Injectable()
-export class OrderService {
+export class RentService {
   constructor(
-    @InjectRepository(OrderEntity)
-    private orderRepository: Repository<OrderEntity>,
+    @InjectRepository(RentEntity)
+    private rentRepository: Repository<RentEntity>,
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
     @InjectRepository(ScooterEntity)
@@ -28,20 +28,18 @@ export class OrderService {
         console.error('Cannot subscribe', err)
       } else {
         subscriber.on('message', (channel: string, message: string) => {
-          console.log('debug')
-          console.log(message)
           const match = message.match(/_(\d+)$/)
           if (match) {
             console.log(match)
-            const orderID = parseInt(match[1], 10)
-            this.reservationExpired(orderID)
+            const rentID = parseInt(match[1], 10)
+            this.reservationExpired(rentID)
           }
         })
       }
     })
   }
 
-  async createOrderService(req: CreateOrderDto.Request): Promise<CreateOrderDto.Response> {
+  async reserve(req: CreateRentDto.Request): Promise<CreateRentDto.Response> {
     const user = await this.userRepository.findOne({
       where: { id: req.userID }
     })
@@ -68,106 +66,114 @@ export class OrderService {
     const scooterLock = await this.redisService.lock(scooterLockKey, 0, req.userID)
     const userLock = await this.redisService.lock(userLockKey, 0, req.userID)
 
-    if (!scooterLock || !userLock) {
-      throw Error('Cannot lock resource')
+    if (!scooterLock) {
+      throw Error('Scooter is already reserved by others')
     }
 
-    // Create order
-    const order = await this.orderRepository.save(
-      new OrderEntity({
+    if (!userLock) {
+      throw Error('User already reserve other scooter')
+    }
+
+    // Create reservation
+    const rent = await this.rentRepository.save(
+      new RentEntity({
         scooter: scooter,
         user: user,
-        status: Define.OrderStatus.reserved
+        status: Define.Rent.Status.reserved
       })
     )
 
-    const reservationKey = Define.RedisKey.reservationLock(order.id)
+    const reservationKey = Define.RedisKey.reservationLock(rent.id)
     await redisClient.hset(reservationKey, <Define.RedisKey.reservationHash>{
-      userID: order.user.id,
-      scooterID: order.scooter.id
+      userID: rent.user.id,
+      scooterID: rent.scooter.id
     })
-    await redisClient.expire(reservationKey, Define.Order.defaultReservedTimeout)
+    await redisClient.expire(reservationKey, Define.Rent.defaultReservedTimeout)
 
-    return order
+    return rent
   }
 
-  async reservationExpired(orderID: number): Promise<void> {
-    const order = await this.orderRepository.findOne({ where: { id: orderID }, relations: ['user', 'scooter'] })
+  async reservationExpired(rentID: number): Promise<void> {
+    const rent = await this.rentRepository.findOne({ where: { id: rentID }, relations: ['user', 'scooter'] })
 
     const redisClient = this.redisService.getClient()
-    const scooterLockKey = Define.RedisKey.scooterOccupiedLock(order.scooter.id)
-    const userLockKey = Define.RedisKey.userReservingLock(order.user.id)
+    const scooterLockKey = Define.RedisKey.scooterOccupiedLock(rent.scooter.id)
+    const userLockKey = Define.RedisKey.userReservingLock(rent.user.id)
     await redisClient.del(scooterLockKey)
     await redisClient.del(userLockKey)
 
-    order.status = Define.OrderStatus.expired
-    await this.orderRepository.save(order)
+    rent.status = Define.Rent.Status.expired
+    await this.rentRepository.save(rent)
   }
 
   async startRent(req: StartRentDto.Request): Promise<StartRentDto.Response> {
-    let order = await this.orderRepository.findOne({ where: { id: req.orderID }, relations: ['user', 'scooter'] })
+    let rent = await this.rentRepository.findOne({ where: { id: req.rentID }, relations: ['user', 'scooter'] })
 
-    if (!order) {
+    if (!rent) {
       throw Error('Not Found')
     }
 
     const redisClient = this.redisService.getClient()
-    const reservationKey = Define.RedisKey.reservationLock(order.id)
+    const reservationKey = Define.RedisKey.reservationLock(rent.id)
+
+    if (rent.status !== Define.Rent.Status.reserved) {
+      throw new Error('Rent is already active')
+    }
 
     if (!(await redisClient.exists(reservationKey))) {
-      order.status = Define.OrderStatus.error
-      await this.orderRepository.save(order)
+      rent.status = Define.Rent.Status.error
+      await this.rentRepository.save(rent)
       throw new Error('Cannot acquire locks')
     }
 
     await redisClient.del(reservationKey)
 
-    order.startTime = unixTime()
-    order.status = Define.OrderStatus.active
-    order = await this.orderRepository.save(order)
+    rent.startTime = unixTime()
+    rent.status = Define.Rent.Status.active
+    rent = await this.rentRepository.save(rent)
 
-    return order
+    return rent
   }
 
   async cancelReservation(req: CancelRentDto.Request): Promise<CancelRentDto.Response> {
-    const order = await this.orderRepository.findOne({ where: { id: req.orderID }, relations: ['user', 'scooter'] })
+    const rent = await this.rentRepository.findOne({ where: { id: req.rentID }, relations: ['user', 'scooter'] })
 
     const redisClient = this.redisService.getClient()
-    const scooterLockKey = Define.RedisKey.scooterOccupiedLock(order.scooter.id)
-    const userLockKey = Define.RedisKey.userReservingLock(order.user.id)
+    const scooterLockKey = Define.RedisKey.scooterOccupiedLock(rent.scooter.id)
+    const userLockKey = Define.RedisKey.userReservingLock(rent.user.id)
     await redisClient.del(scooterLockKey)
     await redisClient.del(userLockKey)
 
-    order.status = Define.OrderStatus.cancelled
-    return await this.orderRepository.save(order)
+    rent.status = Define.Rent.Status.cancelled
+    return await this.rentRepository.save(rent)
   }
 
   async rentFinish(req: RentFinishDto.Request): Promise<RentFinishDto.Response> {
-    let order = await this.orderRepository.findOne({ where: { id: req.orderID }, relations: ['user', 'scooter'] })
+    let rent = await this.rentRepository.findOne({ where: { id: req.rentID }, relations: ['user', 'scooter'] })
 
-    if (order.status !== Define.OrderStatus.active) {
-      throw Error('Order is not activated')
+    if (rent.status !== Define.Rent.Status.active) {
+      throw Error('Rent is not activated')
     }
 
     const redisClient = this.redisService.getClient()
-    const scooterLockKey = Define.RedisKey.scooterOccupiedLock(order.scooter.id)
-    const userLockKey = Define.RedisKey.userReservingLock(order.user.id)
+    const scooterLockKey = Define.RedisKey.scooterOccupiedLock(rent.scooter.id)
+    const userLockKey = Define.RedisKey.userReservingLock(rent.user.id)
     await redisClient.del(scooterLockKey)
     await redisClient.del(userLockKey)
 
-    order.endTime = unixTime()
-    order.status = Define.OrderStatus.completed
-    order = await this.orderRepository.save(order)
+    rent.endTime = unixTime()
+    rent.status = Define.Rent.Status.completed
+    rent = await this.rentRepository.save(rent)
 
-    await this.kafkaService.produce(Define.Kafka.Topic.orderComplete, {
-      orderID: order.id,
-      userID: order.user.id,
-      scooterID: order.scooter.id,
-      startTime: order.startTime,
-      endTime: order.endTime,
-      status: order.status
+    await this.kafkaService.produce(Define.Kafka.Topic.rentComplete, {
+      rentID: rent.id,
+      userID: rent.user.id,
+      scooterID: rent.scooter.id,
+      startTime: rent.startTime,
+      endTime: rent.endTime,
+      status: rent.status
     })
 
-    return order
+    return rent
   }
 }

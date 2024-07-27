@@ -7,17 +7,6 @@ export namespace Define {
     export type Type = typeof available | typeof inUse | typeof reserved
   }
 
-  export namespace OrderStatus {
-    export const cancelled = 0
-    export const active = 1
-    export const reserved = 2
-    export const completed = 3
-    export const error = 4
-    export const expired = 5
-
-    export type Type = typeof cancelled | typeof active | typeof reserved | typeof completed | typeof error | typeof expired
-  }
-
   export namespace ResponseCode {
     export const fail = 500
     export const notExist = 404
@@ -41,18 +30,29 @@ export namespace Define {
     export const userRiddingLock = 'user_ridding_'
   }
 
-  export namespace Order {
-    export const defaultReservedTimeout = 600
+  export namespace Rent {
+    export const defaultReservedTimeout = 30
+
+    export namespace Status {
+      export const cancelled = 0
+      export const active = 1
+      export const reserved = 2
+      export const completed = 3
+      export const error = 4
+      export const expired = 5
+
+      export type Type = typeof cancelled | typeof active | typeof reserved | typeof completed | typeof error | typeof expired
+    }
   }
 
   export namespace Kafka {
     export namespace Topic {
-      export const orderComplete = 'order-complete'
+      export const rentComplete = 'rent-complete'
     }
 
     export namespace Message {
-      export class OrderCompleteMessage {
-        orderID: number
+      export class rentCompleteMessage {
+        rentID: number
         userID: number
         scooterID: number
         startTime: number
@@ -60,7 +60,7 @@ export namespace Define {
         status: number
       }
 
-      export type Type = OrderCompleteMessage
+      export type Type = rentCompleteMessage
     }
   }
 }

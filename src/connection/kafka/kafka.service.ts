@@ -16,13 +16,13 @@ export class KafkaService {
       brokers: configService.get<string>('KAFKA_BROKERS').split(',')
     })
     this.producer = this.kafka.producer()
-    this.consumer = this.kafka.consumer({ groupId: 'order-checker-group' })
+    this.consumer = this.kafka.consumer({ groupId: 'rent-checker-group' })
     ;(async () => {
       await this.producer.connect()
       await this.consumer.connect()
-      await this.consumer.subscribe({ topic: Define.Kafka.Topic.orderComplete, fromBeginning: true })
+      await this.consumer.subscribe({ topic: Define.Kafka.Topic.rentComplete, fromBeginning: true })
       await this.consumer.run({
-        eachMessage: this.orderCompleteHandler
+        eachMessage: this.rentCompleteHandler
       })
     })()
   }
@@ -31,9 +31,9 @@ export class KafkaService {
     await this.producer.send({ topic, messages: [{ value: JSON.stringify(message) }] })
   }
 
-  async orderCompleteHandler(payload: EachMessagePayload): Promise<void> {
-    const orderComplete = plainToInstance(Define.Kafka.Message.OrderCompleteMessage, payload.message.value.toString())
-    console.log('Order Complete')
-    console.log(orderComplete)
+  async rentCompleteHandler(payload: EachMessagePayload): Promise<void> {
+    const rentComplete = plainToInstance(Define.Kafka.Message.rentCompleteMessage, payload.message.value.toString())
+    console.log('Rent Complete')
+    console.log(rentComplete)
   }
 }

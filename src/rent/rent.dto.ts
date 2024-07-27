@@ -1,7 +1,7 @@
 import { IsNumber } from 'class-validator'
-import { OrderEntity } from 'src/connection/postgres/entity/order.entity'
+import { RentEntity } from '../connection/postgres/entity/rent.entity'
 
-export namespace CreateOrderDto {
+export namespace CreateRentDto {
   export class Request {
     @IsNumber()
     userID!: number
@@ -10,28 +10,22 @@ export namespace CreateOrderDto {
     scooterID!: number
   }
 
-  export type Response = OrderEntity
+  export type Response = RentEntity
 }
 
 export namespace StartRentDto {
   export class Request {
     @IsNumber()
-    orderID!: number
-
-    @IsNumber()
-    userID!: number
-
-    @IsNumber()
-    scooterID!: number
+    rentID!: number
   }
 
-  export type Response = OrderEntity
+  export type Response = RentEntity
 }
 
 export namespace CancelRentDto {
   export class Request {
     @IsNumber()
-    orderID!: number
+    rentID!: number
 
     @IsNumber()
     userID!: number
@@ -40,14 +34,14 @@ export namespace CancelRentDto {
     scooterID!: number
   }
 
-  export type Response = OrderEntity
+  export type Response = RentEntity
 }
 
 export namespace FinishRentDto {
   export class Request {
     @IsNumber()
-    orderID!: number
+    rentID!: number
   }
 
-  export type Response = OrderEntity
+  export type Response = RentEntity
 }

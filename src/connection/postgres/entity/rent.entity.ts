@@ -4,20 +4,20 @@ import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedCo
 import { ScooterEntity } from './scooter.entity'
 import { UserEntity } from './user.entity'
 
-@Entity('order')
-export class OrderEntity {
-  constructor(fields?: Partial<OrderEntity> & Pick<OrderEntity, 'scooter' | 'user' | 'status'>) {
+@Entity('rent')
+export class RentEntity {
+  constructor(fields?: Partial<RentEntity> & Pick<RentEntity, 'scooter' | 'user' | 'status'>) {
     Object.assign(this, fields)
   }
 
   @PrimaryGeneratedColumn()
   id!: number
 
-  @ManyToOne(() => UserEntity, (user) => user.order)
+  @ManyToOne(() => UserEntity, (user) => user.rent)
   @JoinColumn({ name: 'user_id' })
   user!: UserEntity
 
-  @ManyToOne(() => ScooterEntity, (scooter) => scooter.orders)
+  @ManyToOne(() => ScooterEntity, (scooter) => scooter.rents)
   @JoinColumn({ name: 'scooter_id' })
   scooter!: ScooterEntity
 
@@ -31,7 +31,7 @@ export class OrderEntity {
   endTime!: number
 
   @Column({ type: 'int' })
-  status!: Define.OrderStatus.Type
+  status!: Define.Rent.Status.Type
 
   @BeforeInsert()
   beforeInsert() {
