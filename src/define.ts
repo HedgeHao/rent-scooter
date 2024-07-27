@@ -49,7 +49,7 @@ export namespace Define {
 
   export namespace Kafka {
     export namespace Topic {
-      export const rentComplete = 'rent-complete'
+      export const rentComplete = isTestMode() ? 'test-rent-complete' : 'rent-complete'
     }
 
     export namespace Message {
