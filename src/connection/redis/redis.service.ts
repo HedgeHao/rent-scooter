@@ -1,17 +1,28 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import Redis, { RedisValue } from 'ioredis'
+import Redis, { RedisOptions, RedisValue } from 'ioredis'
 
 @Injectable()
 export class RedisService {
   private readonly client: Redis
-
+  private readonly subscriber: Redis
   constructor(private readonly configService: ConfigService) {
-    this.client = new Redis({
+    const redisConfig: RedisOptions = {
       host: this.configService.get('REDIS_HOST'),
       port: this.configService.get<number>('REDIS_PORT')
-    }).once('ready', () => {
-      console.log('Redis is ready')
+    }
+
+    this.client = new Redis(redisConfig)
+
+    this.subscriber = new Redis(redisConfig)
+    this.subscriber.subscribe('__keyevent@0__:expired', (err, count) => {
+      if (err) {
+        console.error('Cannot subscribe', err)
+      } else {
+        this.subscriber.on('message', (channel: string, message: string) => {
+          console.log(`${message} has expired`)
+        })
+      }
     })
   }
 
