@@ -7,7 +7,7 @@ import { OrderEntity } from '../connection/postgres/entity/order.entity'
 import { ScooterEntity } from '../connection/postgres/entity/scooter.entity'
 import { UserEntity } from '../connection/postgres/entity/user.entity'
 import { RedisService } from '../connection/redis/redis.service'
-import { CreateOrderDto, StartRentDto } from './order.dto'
+import { CancelRentDto, CreateOrderDto, StartRentDto } from './order.dto'
 
 @Injectable()
 export class OrderService {
@@ -124,8 +124,19 @@ export class OrderService {
     order.status = Define.OrderStatus.active
     order = await this.orderRepository.save(order)
 
-    console.log(order)
-
     return order
+  }
+
+  async cancelReservation(req: CancelRentDto.Request): Promise<CancelRentDto.Response> {
+    const order = await this.orderRepository.findOne({ where: { id: req.orderID }, relations: ['user', 'scooter'] })
+
+    const redisClient = this.redisService.getClient()
+    const scooterLockKey = Define.RedisKey.scooterOccupiedLock(order.scooter.id)
+    const userLockKey = Define.RedisKey.userReservingLock(order.user.id)
+    await redisClient.del(scooterLockKey)
+    await redisClient.del(userLockKey)
+
+    order.status = Define.OrderStatus.cancelled
+    return await this.orderRepository.save(order)
   }
 }

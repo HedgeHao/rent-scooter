@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Post, UseInterceptors } from '@nestjs/common'
 import { ResponseInterceptor } from '../interceptor'
-import { CreateOrderDto, StartRentDto } from './order.dto'
+import { CancelRentDto, CreateOrderDto, StartRentDto } from './order.dto'
 import { OrderService } from './order.service'
 
 @Controller('/order')
@@ -14,7 +14,7 @@ export class OrderController {
   }
 
   @Post('/rent_start')
-  async rentStart(@Body() body: StartRentDto.Request) {
+  async rentStart(@Body() body: StartRentDto.Request): Promise<StartRentDto.Response> {
     return await this.orderService.startRent(body)
   }
 
@@ -24,7 +24,7 @@ export class OrderController {
   }
 
   @Delete('/cancel')
-  async cancelOrder() {
-    return 'cancelOrder'
+  async cancelOrder(@Body() body: CancelRentDto.Request): Promise<CancelRentDto.Response> {
+    return await this.orderService.cancelReservation(body)
   }
 }

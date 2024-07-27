@@ -27,3 +27,18 @@ export namespace StartRentDto {
 
   export type Response = OrderEntity
 }
+
+export namespace CancelRentDto {
+  export class Request {
+    @IsNumber()
+    orderID!: number
+
+    @IsNumber()
+    userID!: number
+
+    @IsNumber()
+    scooterID!: number
+  }
+
+  export type Response = OrderEntity
+}
