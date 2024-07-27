@@ -151,7 +151,7 @@ export class RentService {
   async rentFinish(req: RentFinishDto.Request): Promise<RentFinishDto.Response> {
     let rent = await this.rentRepository.findOne({ where: { id: req.rentID }, relations: ['user', 'scooter'] })
 
-    if (rent.status !== Define.Rent.Status.active) {
+    if (!rent || rent.status !== Define.Rent.Status.active) {
       throw Error('Rent is not activated')
     }
 
