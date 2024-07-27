@@ -42,6 +42,25 @@ export namespace Define {
   }
 
   export namespace Order {
-    export const defaultReservedTimeout = 5
+    export const defaultReservedTimeout = 600
+  }
+
+  export namespace Kafka {
+    export namespace Topic {
+      export const orderComplete = 'order-complete'
+    }
+
+    export namespace Message {
+      export class OrderCompleteMessage {
+        orderID: number
+        userID: number
+        scooterID: number
+        startTime: number
+        endTime: number
+        status: number
+      }
+
+      export type Type = OrderCompleteMessage
+    }
   }
 }

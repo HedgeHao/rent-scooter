@@ -42,3 +42,12 @@ export namespace CancelRentDto {
 
   export type Response = OrderEntity
 }
+
+export namespace FinishRentDto {
+  export class Request {
+    @IsNumber()
+    orderID!: number
+  }
+
+  export type Response = OrderEntity
+}

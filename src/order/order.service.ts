@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
+import { KafkaService } from 'src/connection/kafka/kafka.service'
 import { Define } from 'src/define'
 import { unixTime } from 'src/util'
 import { Repository } from 'typeorm'
@@ -7,7 +8,7 @@ import { OrderEntity } from '../connection/postgres/entity/order.entity'
 import { ScooterEntity } from '../connection/postgres/entity/scooter.entity'
 import { UserEntity } from '../connection/postgres/entity/user.entity'
 import { RedisService } from '../connection/redis/redis.service'
-import { CancelRentDto, CreateOrderDto, StartRentDto } from './order.dto'
+import { CancelRentDto, CreateOrderDto, FinishRentDto as RentFinishDto, StartRentDto } from './order.dto'
 
 @Injectable()
 export class OrderService {
@@ -18,7 +19,8 @@ export class OrderService {
     private userRepository: Repository<UserEntity>,
     @InjectRepository(ScooterEntity)
     private scootersRepository: Repository<ScooterEntity>,
-    private readonly redisService: RedisService
+    private readonly redisService: RedisService,
+    private readonly kafkaService: KafkaService
   ) {
     const subscriber = this.redisService.getSubscriber()
     subscriber.subscribe('__keyevent@0__:expired', (err, count) => {
@@ -138,5 +140,34 @@ export class OrderService {
 
     order.status = Define.OrderStatus.cancelled
     return await this.orderRepository.save(order)
+  }
+
+  async rentFinish(req: RentFinishDto.Request): Promise<RentFinishDto.Response> {
+    let order = await this.orderRepository.findOne({ where: { id: req.orderID }, relations: ['user', 'scooter'] })
+
+    if (order.status !== Define.OrderStatus.active) {
+      throw Error('Order is not activated')
+    }
+
+    const redisClient = this.redisService.getClient()
+    const scooterLockKey = Define.RedisKey.scooterOccupiedLock(order.scooter.id)
+    const userLockKey = Define.RedisKey.userReservingLock(order.user.id)
+    await redisClient.del(scooterLockKey)
+    await redisClient.del(userLockKey)
+
+    order.endTime = unixTime()
+    order.status = Define.OrderStatus.completed
+    order = await this.orderRepository.save(order)
+
+    await this.kafkaService.produce(Define.Kafka.Topic.orderComplete, {
+      orderID: order.id,
+      userID: order.user.id,
+      scooterID: order.scooter.id,
+      startTime: order.startTime,
+      endTime: order.endTime,
+      status: order.status
+    })
+
+    return order
   }
 }

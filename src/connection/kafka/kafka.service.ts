@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { plainToInstance } from 'class-transformer'
 import { Consumer, EachMessagePayload, Kafka, Producer } from 'kafkajs'
+import { Define } from 'src/define'
 
 @Injectable()
 export class KafkaService {
@@ -18,18 +20,20 @@ export class KafkaService {
     ;(async () => {
       await this.producer.connect()
       await this.consumer.connect()
-      await this.consumer.subscribe({ topic: 'order-expiration', fromBeginning: true })
+      await this.consumer.subscribe({ topic: Define.Kafka.Topic.orderComplete, fromBeginning: true })
       await this.consumer.run({
-        eachMessage: this.orderExpirationHandler
+        eachMessage: this.orderCompleteHandler
       })
     })()
   }
 
-  async produce(topic: string, message: any) {
+  async produce(topic: string, message: Define.Kafka.Message.Type) {
     await this.producer.send({ topic, messages: [{ value: JSON.stringify(message) }] })
   }
 
-  async orderExpirationHandler(payload: EachMessagePayload): Promise<void> {
-    console.log(payload.message.value.toString())
+  async orderCompleteHandler(payload: EachMessagePayload): Promise<void> {
+    const orderComplete = plainToInstance(Define.Kafka.Message.OrderCompleteMessage, payload.message.value.toString())
+    console.log('Order Complete')
+    console.log(orderComplete)
   }
 }
