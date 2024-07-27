@@ -3,7 +3,7 @@ import { RentEntity } from './rent.entity'
 
 @Entity('user')
 export class UserEntity {
-  constructor(fields?: Partial<UserEntity> & Pick<UserEntity, 'name' | 'age' | 'height' | 'username' | 'password'>) {
+  constructor(fields?: Partial<UserEntity>) {
     Object.assign(this, fields)
   }
 

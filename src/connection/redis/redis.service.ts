@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import Redis, { RedisOptions, RedisValue } from 'ioredis'
+import RedisMock from 'ioredis-mock'
 
 @Injectable()
 export class RedisService {
@@ -11,9 +12,13 @@ export class RedisService {
       host: this.configService.get('REDIS_HOST'),
       port: this.configService.get<number>('REDIS_PORT')
     }
-
-    this.client = new Redis(redisConfig)
-    this.subscriber = new Redis(redisConfig)
+    if (process.env.MODE === 'test') {
+      this.client = new RedisMock()
+      this.subscriber = new RedisMock()
+    } else {
+      this.client = new Redis(redisConfig)
+      this.subscriber = new Redis(redisConfig)
+    }
   }
 
   getClient(): Redis {

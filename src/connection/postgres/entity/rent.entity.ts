@@ -1,12 +1,12 @@
-import { Define } from 'src/define'
-import { unixTime } from 'src/util'
 import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { Define } from '../../../define'
+import { unixTime } from '../../../util'
 import { ScooterEntity } from './scooter.entity'
 import { UserEntity } from './user.entity'
 
 @Entity('rent')
 export class RentEntity {
-  constructor(fields?: Partial<RentEntity> & Pick<RentEntity, 'scooter' | 'user' | 'status'>) {
+  constructor(fields?: Partial<RentEntity>) {
     Object.assign(this, fields)
   }
 

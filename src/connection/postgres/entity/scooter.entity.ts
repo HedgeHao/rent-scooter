@@ -4,7 +4,7 @@ import { RentEntity } from './rent.entity'
 
 @Entity('scooter')
 export class ScooterEntity {
-  constructor(fields?: Partial<ScooterEntity> & Pick<ScooterEntity, 'name'>) {
+  constructor(fields?: Partial<ScooterEntity>) {
     Object.assign(this, fields)
   }
   @PrimaryGeneratedColumn()

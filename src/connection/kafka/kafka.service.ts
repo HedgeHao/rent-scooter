@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { plainToInstance } from 'class-transformer'
 import { Consumer, EachMessagePayload, Kafka, Producer } from 'kafkajs'
-import { Define } from 'src/define'
+import { Define } from '../../define'
 
 @Injectable()
 export class KafkaService {

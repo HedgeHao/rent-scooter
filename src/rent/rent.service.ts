@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { KafkaService } from 'src/connection/kafka/kafka.service'
-import { Define } from 'src/define'
-import { unixTime } from 'src/util'
 import { Repository } from 'typeorm'
+import { KafkaService } from '../connection/kafka/kafka.service'
 import { RentEntity } from '../connection/postgres/entity/rent.entity'
 import { ScooterEntity } from '../connection/postgres/entity/scooter.entity'
 import { UserEntity } from '../connection/postgres/entity/user.entity'
 import { RedisService } from '../connection/redis/redis.service'
+import { Define } from '../define'
+import { unixTime } from '../util'
 import { CancelRentDto, CreateRentDto, FinishRentDto as RentFinishDto, StartRentDto } from './rent.dto'
 
 @Injectable()
