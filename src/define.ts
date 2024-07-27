@@ -1,3 +1,5 @@
+import { isTestMode } from './util'
+
 export namespace Define {
   export namespace ScooterStatus {
     export const available = 0
@@ -19,9 +21,9 @@ export namespace Define {
     export const scooterOccupiedPrefix = 'scooter_occupied_'
     export const scooterOccupiedLock = (scooterID: number) => `${scooterOccupiedPrefix}${scooterID}`
     export const userReservingPrefix = 'user_reserving_'
-    export const userReservingLock = (scooterID: number) => `${userReservingPrefix}${scooterID}`
+    export const userReservingLock = (userID: number) => `${userReservingPrefix}${userID}`
     export const reservationPrefix = 'reservation_'
-    export const reservationLock = (scooterID: number) => `${reservationPrefix}${scooterID}`
+    export const reservationLock = (rentID: number) => `${reservationPrefix}${rentID}`
 
     export type reservationHash = {
       userID: number
@@ -31,7 +33,7 @@ export namespace Define {
   }
 
   export namespace Rent {
-    export const defaultReservedTimeout = 30
+    export const defaultReservedTimeout = isTestMode() ? 1 : 600
 
     export namespace Status {
       export const cancelled = 0

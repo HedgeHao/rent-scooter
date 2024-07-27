@@ -59,8 +59,8 @@ export class RentService {
     // Lock user and scooter
     const redisClient = this.redisService.getClient()
 
-    const scooterLockKey = Define.RedisKey.scooterOccupiedLock(req.scooterID)
-    const userLockKey = Define.RedisKey.userReservingLock(req.userID)
+    const scooterLockKey = Define.RedisKey.scooterOccupiedLock(scooter.id)
+    const userLockKey = Define.RedisKey.userReservingLock(user.id)
 
     //TODO: Still might be race condition between two locks. Use LUA for atomic operation
     const scooterLock = await this.redisService.lock(scooterLockKey, 0, req.userID)
@@ -88,6 +88,7 @@ export class RentService {
       userID: rent.user.id,
       scooterID: rent.scooter.id
     })
+    console.log(`Debug: ${reservationKey}, ${Define.Rent.defaultReservedTimeout}`)
     await redisClient.expire(reservationKey, Define.Rent.defaultReservedTimeout)
 
     return rent
@@ -158,6 +159,7 @@ export class RentService {
     const redisClient = this.redisService.getClient()
     const scooterLockKey = Define.RedisKey.scooterOccupiedLock(rent.scooter.id)
     const userLockKey = Define.RedisKey.userReservingLock(rent.user.id)
+
     await redisClient.del(scooterLockKey)
     await redisClient.del(userLockKey)
 

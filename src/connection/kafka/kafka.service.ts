@@ -20,7 +20,7 @@ export class KafkaService {
     ;(async () => {
       await this.producer.connect()
       await this.consumer.connect()
-      await this.consumer.subscribe({ topic: Define.Kafka.Topic.rentComplete, fromBeginning: true })
+      await this.consumer.subscribe({ topic: Define.Kafka.Topic.rentComplete, fromBeginning: false })
       await this.consumer.run({
         eachMessage: this.rentCompleteHandler
       })

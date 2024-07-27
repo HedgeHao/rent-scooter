@@ -26,12 +26,6 @@ export namespace CancelRentDto {
   export class Request {
     @IsNumber()
     rentID!: number
-
-    @IsNumber()
-    userID!: number
-
-    @IsNumber()
-    scooterID!: number
   }
 
   export type Response = RentEntity

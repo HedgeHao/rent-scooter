@@ -9,7 +9,9 @@ import { ScooterEntity } from '../connection/postgres/entity/scooter.entity'
 import { UserEntity } from '../connection/postgres/entity/user.entity'
 import { PostgresModule } from '../connection/postgres/postgres.module'
 import { RedisModule } from '../connection/redis/redis.module'
+import { RedisService } from '../connection/redis/redis.service'
 import { Define } from '../define'
+import { sleep } from '../util'
 import { RentService } from './rent.service'
 
 context(__filename, () => {
@@ -20,6 +22,7 @@ context(__filename, () => {
   let scootersRepository: Repository<ScooterEntity>
   let rentRepository: Repository<RentEntity>
   let service: RentService
+  let redisService: RedisService
 
   let userJosh: UserEntity, userMandy: UserEntity
   let scooterA: ScooterEntity, scooterB: ScooterEntity, scooterC: ScooterEntity
@@ -36,6 +39,7 @@ context(__filename, () => {
     rentRepository = db.getRepository(RentEntity)
 
     service = testModule.get(RentService)
+    redisService = testModule.get(RedisService)
   })
 
   it('init db', async () => {
@@ -49,15 +53,27 @@ context(__filename, () => {
 
   it('Success Flow', async () => {
     let rent = await service.reserve({ userID: userJosh.id, scooterID: scooterA.id })
-
     deepStrictEqual(rent.status, Define.Rent.Status.reserved)
 
     rent = await service.startRent({ rentID: rent.id })
-
     deepStrictEqual(rent.status, Define.Rent.Status.active)
 
     rent = await service.rentFinish({ rentID: rent.id })
-
     deepStrictEqual(rent.status, Define.Rent.Status.completed)
   })
+
+  it('Test reservation expired', async () => {
+    const redis = redisService.getClient()
+
+    let rent = await service.reserve({ userID: userJosh.id, scooterID: scooterA.id })
+    deepStrictEqual(rent.status, Define.Rent.Status.reserved)
+
+    await sleep(1500)
+    deepStrictEqual(await redis.get('reservation_2'), null)
+
+    // iosredis-mock do not have event listener. So, call cancel manually
+    await service.cancelReservation({ rentID: rent.id })
+
+    deepStrictEqual(await redis.dbsize(), 0)
+  }).timeout(5000)
 })

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
+import { isTestMode } from '../../util'
 import { RentEntity } from './entity/rent.entity'
 import { ScooterEntity } from './entity/scooter.entity'
 import { UserEntity } from './entity/user.entity'
@@ -9,7 +10,7 @@ const entityList = [UserEntity, ScooterEntity, RentEntity]
 
 @Module({
   imports: [
-    process.env.MODE === 'test'
+    isTestMode()
       ? TypeOrmModule.forRootAsync({
           imports: [],
           useFactory: () => ({
