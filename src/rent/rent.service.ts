@@ -46,6 +46,8 @@ export class RentService {
 
     if (!user) {
       throw new Error('User not found')
+    } else if (user.status !== Define.User.Status.free) {
+      throw new Error('User is not available')
     }
 
     const scooter = await this.scootersRepository.findOne({
@@ -123,7 +125,7 @@ export class RentService {
     rent.status = Define.Rent.Status.expired
     await this.rentRepository.save(rent)
 
-    rent.user.status = Define.User.Status.reserved
+    rent.user.status = Define.User.Status.free
     await this.userRepository.save(rent.user)
   }
 
@@ -165,6 +167,10 @@ export class RentService {
   async cancelReservation(req: CancelRentDto.Request): Promise<CancelRentDto.Response> {
     let rent = await this.rentRepository.findOne({ where: { id: req.rentID }, relations: ['user', 'scooter'] })
 
+    if (rent.status !== Define.Rent.Status.reserved) {
+      throw Error('Rent is not reserved')
+    }
+
     const redisClient = this.redisService.getClient()
     const scooterLockKey = Define.RedisKey.scooterOccupiedLock(rent.scooter.id)
     const userLockKey = Define.RedisKey.userReservingLock(rent.user.id)
@@ -177,7 +183,7 @@ export class RentService {
     rent.scooter.status = Define.Scooter.Status.available
     await this.scootersRepository.save(rent.scooter)
 
-    rent.user.status = Define.User.Status.reserved
+    rent.user.status = Define.User.Status.free
     await this.userRepository.save(rent.user)
 
     return rentEntity2Info(rent)

@@ -12,7 +12,7 @@ export class ScooterService {
   ) {}
 
   async getAllScooters(): Promise<ScooterDto[]> {
-    const scooters = await this.scooterRepository.find()
+    const scooters = await this.scooterRepository.find({ order: { id: 'ASC' } })
     return scooters
   }
 }

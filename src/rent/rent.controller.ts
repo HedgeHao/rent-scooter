@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Post, UseInterceptors } from '@nestjs/common'
+import { Body, Controller, Post, UseInterceptors } from '@nestjs/common'
 import { ResponseInterceptor } from '../interceptor'
 import { CancelRentDto, CreateRentDto, FinishRentDto, StartRentDto } from './rent.dto'
 import { RentService } from './rent.service'
@@ -23,7 +23,7 @@ export class RentController {
     return await this.rentService.rentFinish(body)
   }
 
-  @Delete('/cancel')
+  @Post('/cancel')
   async cancelRent(@Body() body: CancelRentDto.Request): Promise<CancelRentDto.Response> {
     return await this.rentService.cancelReservation(body)
   }
