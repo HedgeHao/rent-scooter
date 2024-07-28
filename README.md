@@ -1,4 +1,4 @@
-# WeMo Tech Stack
+# Rent Scooter
 
 ## Postgres
 
@@ -59,4 +59,31 @@ select * from "user"; -- Table name need to be in quotes.
 
 ```bash
 docker run --name redis -d -p 6379:6379 redis:7.2.5-alpine
+```
+
+## Kafka
+
+- Error `There is no leader for this topic-partition as we are in the middle of a leadership election`
+  The broker create topic is lost
+
+- After first connect to Kafka broker. Broker will return a `listener` metadata for further connection. Host needs to be able to connect to that listener address.
+
+```yaml
+environment:
+  - ALLOW_PLAINTEXT_LISTENER=yes
+  - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+  - KAFKA_LISTENERS=INTERNAL://:9092,EXTERNAL://:9093
+  - KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:9092,EXTERNAL://kafka:9093
+  - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+  - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+```
+
+- Add `127.0.0.1 kafka` to `/etc/hosts` for connection both within docker containers and host machine
+
+## App
+
+### Run
+
+```bash
+docker run -it --rm --name rent-scooter -p 3000:3000 -e "MODE=docker" --network rent-scooter_rent-scooter-net rent-scooter
 ```

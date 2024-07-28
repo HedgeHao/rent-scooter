@@ -10,6 +10,7 @@ import { RentController } from './rent/rent.controller'
 import { RentService } from './rent/rent.service'
 import { UserController } from './user/user.controller'
 import { UserService } from './user/user.service'
+import { isDeploy } from './util'
 
 const apiValidationPipe: Provider = {
   provide: APP_PIPE,
@@ -27,7 +28,12 @@ const apiValidationPipe: Provider = {
 }
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true, envFilePath: 'env/dev.env' }), PostgresModule, RedisModule, KafkaModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: isDeploy() ? '/etc/deploy.env' : 'env/dev.env' }),
+    PostgresModule,
+    RedisModule,
+    KafkaModule
+  ],
   controllers: [AppController, UserController, RentController],
   providers: [apiValidationPipe, AppService, UserService, RentService]
 })
