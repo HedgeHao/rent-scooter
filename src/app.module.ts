@@ -8,6 +8,8 @@ import { PostgresModule } from './connection/postgres/postgres.module'
 import { RedisModule } from './connection/redis/redis.module'
 import { RentController } from './rent/rent.controller'
 import { RentService } from './rent/rent.service'
+import { ScooterController } from './scooter/scooter.controller'
+import { ScooterService } from './scooter/scooter.service'
 import { UserController } from './user/user.controller'
 import { UserService } from './user/user.service'
 import { isDeploy } from './util'
@@ -34,7 +36,7 @@ const apiValidationPipe: Provider = {
     RedisModule,
     KafkaModule
   ],
-  controllers: [AppController, UserController, RentController],
-  providers: [apiValidationPipe, AppService, UserService, RentService]
+  controllers: [AppController, UserController, RentController, ScooterController],
+  providers: [apiValidationPipe, AppService, UserService, RentService, ScooterService]
 })
 export class AppModule {}

@@ -1,5 +1,6 @@
 class UserDto {
-    name!: string
-    age!: number
-    height!: number
+  id!: number
+  name!: string
+  age!: number
+  height!: number
 }

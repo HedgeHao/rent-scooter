@@ -1,17 +1,17 @@
-import { Injectable } from "@nestjs/common";
-import { UserEntity } from "../connection/postgres/entity/user.entity";
-import { Repository } from "typeorm";
-import { InjectRepository } from "@nestjs/typeorm";
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { UserEntity } from '../connection/postgres/entity/user.entity'
 
 @Injectable()
 export class UserService {
-    constructor(
-        @InjectRepository(UserEntity)
-        private readonly userRepository: Repository<UserEntity>
-    ) { }
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>
+  ) {}
 
-    async getAllUsers(): Promise<UserDto[]> {
-        const users = await this.userRepository.find({ select: ['name', 'age', 'height'] }) as UserDto[]
-        return users
-    }
+  async getAllUsers(): Promise<UserDto[]> {
+    const users = (await this.userRepository.find({ select: ['id', 'name', 'age', 'height'] })) as UserDto[]
+    return users
+  }
 }
