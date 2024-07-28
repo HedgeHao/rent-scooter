@@ -88,7 +88,6 @@ export class RentService {
       userID: rent.user.id,
       scooterID: rent.scooter.id
     })
-    console.log(`Debug: ${reservationKey}, ${Define.Rent.defaultReservedTimeout}`)
     await redisClient.expire(reservationKey, Define.Rent.defaultReservedTimeout)
 
     return rent

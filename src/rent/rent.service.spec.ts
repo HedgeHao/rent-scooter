@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
-import { deepStrictEqual } from 'assert'
+import { deepStrictEqual, strictEqual } from 'assert'
 import { Connection, Repository } from 'typeorm'
 import { KafkaModule } from '../connection/kafka/kafka.module'
 import { RentEntity } from '../connection/postgres/entity/rent.entity'
@@ -53,20 +53,20 @@ context(__filename, () => {
 
   it('Success Flow', async () => {
     let rent = await service.reserve({ userID: userJosh.id, scooterID: scooterA.id })
-    deepStrictEqual(rent.status, Define.Rent.Status.reserved)
+    strictEqual(rent.status, Define.Rent.Status.reserved)
 
     rent = await service.startRent({ rentID: rent.id })
-    deepStrictEqual(rent.status, Define.Rent.Status.active)
+    strictEqual(rent.status, Define.Rent.Status.active)
 
     rent = await service.rentFinish({ rentID: rent.id })
-    deepStrictEqual(rent.status, Define.Rent.Status.completed)
+    strictEqual(rent.status, Define.Rent.Status.completed)
   })
 
   it('Test reservation expired', async () => {
     const redis = redisService.getClient()
 
     let rent = await service.reserve({ userID: userJosh.id, scooterID: scooterA.id })
-    deepStrictEqual(rent.status, Define.Rent.Status.reserved)
+    strictEqual(rent.status, Define.Rent.Status.reserved)
 
     await sleep(1500)
     deepStrictEqual(await redis.get('reservation_2'), null)
@@ -74,6 +74,6 @@ context(__filename, () => {
     // iosredis-mock do not have event listener. So, call cancel manually
     await service.cancelReservation({ rentID: rent.id })
 
-    deepStrictEqual(await redis.dbsize(), 0)
+    strictEqual(await redis.dbsize(), 0)
   }).timeout(5000)
 })

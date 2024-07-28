@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { plainToInstance } from 'class-transformer'
-import { Consumer, EachMessagePayload, Kafka, Producer } from 'kafkajs'
+import { Consumer, EachMessagePayload, Kafka, Producer, logLevel } from 'kafkajs'
 import { Define } from '../../define'
 
 @Injectable()
@@ -13,7 +13,8 @@ export class KafkaService {
   constructor(private readonly configService: ConfigService) {
     this.kafka = new Kafka({
       clientId: 'rent-scooter-kafka',
-      brokers: configService.get<string>('KAFKA_BROKERS').split(',')
+      brokers: configService.get<string>('KAFKA_BROKERS').split(','),
+      logLevel: logLevel.ERROR
     })
     this.producer = this.kafka.producer()
     this.consumer = this.kafka.consumer({ groupId: 'rent-checker-group' })
@@ -33,7 +34,9 @@ export class KafkaService {
 
   async rentCompleteHandler(payload: EachMessagePayload): Promise<void> {
     const rentComplete = plainToInstance(Define.Kafka.Message.rentCompleteMessage, payload.message.value.toString())
+    console.log('=======Kafka Consumer========')
     console.log('Rent Complete')
     console.log(rentComplete)
+    console.log('=======Kafka Consumer========')
   }
 }
