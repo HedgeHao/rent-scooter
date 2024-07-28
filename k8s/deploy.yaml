@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rent-scooter-deployment
+  labels:
+    app: rent-scooter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rent-scooter
+  template:
+    metadata:
+      labels:
+        app: rent-scooter
+    spec:
+      hostNetwork: true
+      containers:
+      - name: rent-scooter
+        image: localhost:32000/rent-scooter
+        ports:
+        - containerPort: 3000
+        env:
+        - name: MODE
+          value: deploy
