@@ -54,6 +54,8 @@ export class RentService {
 
     if (!scooter) {
       throw new Error('Scooter not found')
+    } else if (scooter.status !== Define.Scooter.Status.available) {
+      throw new Error('Scooter is not available')
     }
 
     // Lock user and scooter
@@ -92,8 +94,11 @@ export class RentService {
       })
       await redisClient.expire(reservationKey, Define.Rent.defaultReservedTimeout)
 
-      scooter.status = Define.ScooterStatus.reserved
+      scooter.status = Define.Scooter.Status.reserved
       await this.scootersRepository.save(scooter)
+
+      user.status = Define.User.Status.reserved
+      await this.userRepository.save(user)
 
       return rentEntity2Info(rent)
     } catch (e) {
@@ -112,11 +117,14 @@ export class RentService {
     await redisClient.del(scooterLockKey)
     await redisClient.del(userLockKey)
 
-    rent.scooter.status = Define.ScooterStatus.available
+    rent.scooter.status = Define.Scooter.Status.available
     await this.scootersRepository.save(rent.scooter)
 
     rent.status = Define.Rent.Status.expired
     await this.rentRepository.save(rent)
+
+    rent.user.status = Define.User.Status.reserved
+    await this.userRepository.save(rent.user)
   }
 
   async startRent(req: StartRentDto.Request): Promise<StartRentDto.Response> {
@@ -145,8 +153,11 @@ export class RentService {
     rent.status = Define.Rent.Status.active
     rent = await this.rentRepository.save(rent)
 
-    rent.scooter.status = Define.ScooterStatus.inUse
+    rent.scooter.status = Define.Scooter.Status.inUse
     await this.scootersRepository.save(rent.scooter)
+
+    rent.user.status = Define.User.Status.ridding
+    await this.userRepository.save(rent.user)
 
     return rentEntity2Info(rent)
   }
@@ -163,8 +174,11 @@ export class RentService {
     rent.status = Define.Rent.Status.cancelled
     rent = await this.rentRepository.save(rent)
 
-    rent.scooter.status = Define.ScooterStatus.available
+    rent.scooter.status = Define.Scooter.Status.available
     await this.scootersRepository.save(rent.scooter)
+
+    rent.user.status = Define.User.Status.reserved
+    await this.userRepository.save(rent.user)
 
     return rentEntity2Info(rent)
   }
@@ -186,6 +200,12 @@ export class RentService {
     rent.endTime = unixTime()
     rent.status = Define.Rent.Status.completed
     rent = await this.rentRepository.save(rent)
+
+    rent.scooter.status = Define.Scooter.Status.available
+    await this.scootersRepository.save(rent.scooter)
+
+    rent.user.status = Define.User.Status.free
+    await this.userRepository.save(rent.user)
 
     await this.kafkaService.produce(Define.Kafka.Topic.rentComplete, {
       rentID: rent.id,

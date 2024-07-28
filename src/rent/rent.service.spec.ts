@@ -43,12 +43,12 @@ context(__filename, () => {
   })
 
   it('init db', async () => {
-    userJosh = await userRepository.save(new UserEntity({ name: 'Josh', username: 'josh', password: '1234', age: 30, height: 180.1 }))
-    userMandy = await userRepository.save(new UserEntity({ name: 'Mandy', username: 'mandy', password: '1234', age: 28, height: 161.3 }))
+    userJosh = await userRepository.save(new UserEntity({ name: 'Josh', username: 'josh', password: '1234', status: 0 }))
+    userMandy = await userRepository.save(new UserEntity({ name: 'Mandy', username: 'mandy', password: '1234', status: 0 }))
 
-    scooterA = await scootersRepository.save(new ScooterEntity({ name: 'scooter A', power: 100.0, status: Define.ScooterStatus.available }))
-    scooterB = await scootersRepository.save(new ScooterEntity({ name: 'scooter B', power: 88.8, status: Define.ScooterStatus.available }))
-    scooterC = await scootersRepository.save(new ScooterEntity({ name: 'scooter C', power: 66.6, status: Define.ScooterStatus.available }))
+    scooterA = await scootersRepository.save(new ScooterEntity({ name: 'scooter A', power: 100.0, status: Define.Scooter.Status.available }))
+    scooterB = await scootersRepository.save(new ScooterEntity({ name: 'scooter B', power: 88.8, status: Define.Scooter.Status.available }))
+    scooterC = await scootersRepository.save(new ScooterEntity({ name: 'scooter C', power: 66.6, status: Define.Scooter.Status.available }))
   })
 
   it('Success Flow', async () => {

@@ -52,7 +52,10 @@ WHERE id = 1;
 - Select
 
 ```postgres
-select * from "user"; -- Table name need to be in quotes.
+SELECT r.*, u.name, u.status  AS "userStatus", s.name, s.status  AS "scooterStatus"
+FROM "rent" r
+JOIN "user" u ON r.user_id = u.id
+JOIN "scooter" s ON r.scooter_id = s.id;
 ```
 
 ## Redis

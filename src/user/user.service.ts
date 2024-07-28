@@ -11,7 +11,7 @@ export class UserService {
   ) {}
 
   async getAllUsers(): Promise<UserDto[]> {
-    const users = (await this.userRepository.find({ select: ['id', 'name', 'age', 'height'] })) as UserDto[]
+    const users = (await this.userRepository.find({ select: ['id', 'name', 'status'] })) as UserDto[]
     return users
   }
 }

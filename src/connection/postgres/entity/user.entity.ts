@@ -1,4 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm'
+import { Define } from '../../../define'
 import { RentEntity } from './rent.entity'
 
 @Entity('user')
@@ -13,14 +14,11 @@ export class UserEntity {
   @Column('varchar')
   name!: string
 
-  @Column('int', { nullable: true })
-  age!: number | null
-
-  @Column('decimal', { nullable: true })
-  height!: number | null
-
   @Column('varchar', { nullable: false })
   username!: string
+
+  @Column('int')
+  status!: Define.User.Status.Type
 
   @Column('varchar')
   password!: string

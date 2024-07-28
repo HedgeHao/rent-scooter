@@ -13,10 +13,9 @@ CREATE TABLE scooter (
 CREATE TABLE "user" (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
-  age INTEGER,
-  height NUMERIC(10,2),
   username VARCHAR(255) NOT NULL,
-  password VARCHAR(255) NOT NULL
+  password VARCHAR(255) NOT NULL,
+  status SMALLINT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE "rent" (
@@ -35,9 +34,9 @@ CREATE TABLE "rent" (
 TRUNCATE TABLE "user" CASCADE;
 TRUNCATE TABLE "scooter" CASCADE;
 TRUNCATE TABLE "rent";
-INSERT INTO "user" (name, age, height, username, password) VALUES
-  ('Josh', 30, 180.1, 'joshchiu', '1234'),
-  ('Yuri', 22, 163.4, 'yuri', '1234');
+INSERT INTO "user" (name, username, password) VALUES
+  ('Josh', 'joshchiu', '1234'),
+  ('Yuri', 'yuri', '1234');
 
 INSERT INTO scooter (name, power, status) VALUES
 ('Scooter A', 100.0, 0),

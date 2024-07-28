@@ -17,7 +17,7 @@ export class ScooterEntity {
   power!: number
 
   @Column('int', { nullable: false, default: 0 })
-  status!: Define.ScooterStatus.Type
+  status!: Define.Scooter.Status.Type
 
   @OneToMany(() => RentEntity, (rent) => rent.scooter)
   rents: RentEntity[]

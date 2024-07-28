@@ -1,13 +1,15 @@
 import { isTestMode } from './util'
 
 export namespace Define {
-  export namespace ScooterStatus {
-    export const available = 0
-    export const inUse = 1
-    export const reserved = 2
-    export const offline = 3
+  export namespace Scooter {
+    export namespace Status {
+      export const available = 0
+      export const inUse = 1
+      export const reserved = 2
+      export const offline = 3
 
-    export type Type = typeof available | typeof inUse | typeof reserved | typeof offline
+      export type Type = typeof available | typeof inUse | typeof reserved | typeof offline
+    }
   }
 
   export namespace ResponseCode {
@@ -31,6 +33,16 @@ export namespace Define {
       scooterID: number
     }
     export const userRiddingLock = 'user_ridding_'
+  }
+
+  export namespace User {
+    export namespace Status {
+      export const free = 0
+      export const reserved = 1
+      export const ridding = 2
+
+      export type Type = typeof free | typeof reserved | typeof ridding
+    }
   }
 
   export namespace Rent {

@@ -28,8 +28,8 @@ context(__filename, () => {
   })
 
   it('init db', async () => {
-    await userRepository.save(new UserEntity({ name: 'Josh', username: 'josh', password: '1234', age: 30, height: 180.1 }))
-    await userRepository.save(new UserEntity({ name: 'Mandy', username: 'mandy', password: '1234', age: 28, height: 161.3 }))
+    await userRepository.save(new UserEntity({ name: 'Josh', username: 'josh', password: '1234', status: 0 }))
+    await userRepository.save(new UserEntity({ name: 'Mandy', username: 'mandy', password: '1234', status: 0 }))
   })
 
   it('Get all users', async () => {
@@ -40,8 +40,8 @@ context(__filename, () => {
       info: '',
       code: 200,
       detail: [
-        { name: 'Josh', age: 30, height: 180.1 },
-        { name: 'Mandy', age: 28, height: 161.3 }
+        { id: 1, name: 'Josh', status: 0 },
+        { id: 2, name: 'Mandy', status: 0 }
       ]
     })
   })
