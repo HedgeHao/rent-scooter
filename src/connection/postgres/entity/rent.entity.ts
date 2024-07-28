@@ -1,6 +1,5 @@
-import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Define } from '../../../define'
-import { unixTime } from '../../../util'
 import { ScooterEntity } from './scooter.entity'
 import { UserEntity } from './user.entity'
 
@@ -21,8 +20,8 @@ export class RentEntity {
   @JoinColumn({ name: 'scooter_id' })
   scooter!: ScooterEntity
 
-  @Column({ name: 'reservation_time', type: 'int' })
-  reservationTime!: number
+  @Column({ name: 'reservation_expired_at', type: 'int' })
+  reservationExpiredAt!: number
 
   @Column({ name: 'start_time', type: 'int', nullable: true })
   startTime!: number
@@ -32,9 +31,4 @@ export class RentEntity {
 
   @Column({ type: 'int' })
   status!: Define.Rent.Status.Type
-
-  @BeforeInsert()
-  beforeInsert() {
-    this.reservationTime = unixTime()
-  }
 }

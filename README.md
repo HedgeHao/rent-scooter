@@ -61,6 +61,12 @@ select * from "user"; -- Table name need to be in quotes.
 docker run --name redis -d -p 6379:6379 redis:7.2.5-alpine
 ```
 
+- enable expire listener
+
+```bash
+CONFIG SET notify-keyspace-events Ex
+```
+
 ## Kafka
 
 - Error `There is no leader for this topic-partition as we are in the middle of a leadership election`

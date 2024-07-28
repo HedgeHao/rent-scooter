@@ -5,8 +5,9 @@ export namespace Define {
     export const available = 0
     export const inUse = 1
     export const reserved = 2
+    export const offline = 3
 
-    export type Type = typeof available | typeof inUse | typeof reserved
+    export type Type = typeof available | typeof inUse | typeof reserved | typeof offline
   }
 
   export namespace ResponseCode {
@@ -33,7 +34,7 @@ export namespace Define {
   }
 
   export namespace Rent {
-    export const defaultReservedTimeout = isTestMode() ? 1 : 600
+    export const defaultReservedTimeout = isTestMode() ? 1 : 60
 
     export namespace Status {
       export const cancelled = 0

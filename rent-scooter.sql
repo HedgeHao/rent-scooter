@@ -23,7 +23,7 @@ CREATE TABLE "rent" (
   id SERIAL PRIMARY KEY,
   user_id INTEGER,
   scooter_id INTEGER,
-  reservation_time INTEGER NOT NULL,
+  reservation_expired_at INTEGER NOT NULL,
   start_time INTEGER,
   end_time INTEGER,
   status SMALLINT NOT NULL DEFAULT 2,
@@ -43,6 +43,7 @@ INSERT INTO scooter (name, power, status) VALUES
 ('Scooter A', 100.0, 0),
 ('Scooter B', 87.65, 0),
 ('Scooter C', 45.67, 0),
-('Scooter D', 23.45, 0),
-('Scooter E', 7.8, 0);
+('Scooter D', 23.45, 1),
+('Scooter E', 7.8, 2),
+('Scooter F', 7.8, 3);
 

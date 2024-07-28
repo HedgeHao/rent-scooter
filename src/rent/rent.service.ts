@@ -8,7 +8,7 @@ import { UserEntity } from '../connection/postgres/entity/user.entity'
 import { RedisService } from '../connection/redis/redis.service'
 import { Define } from '../define'
 import { unixTime } from '../util'
-import { CancelRentDto, CreateRentDto, FinishRentDto as RentFinishDto, StartRentDto } from './rent.dto'
+import { CancelRentDto, CreateRentDto, FinishRentDto as RentFinishDto, StartRentDto, rentEntity2Info } from './rent.dto'
 
 @Injectable()
 export class RentService {
@@ -64,33 +64,43 @@ export class RentService {
 
     //TODO: Still might be race condition between two locks. Use LUA for atomic operation
     const scooterLock = await this.redisService.lock(scooterLockKey, 0, req.userID)
-    const userLock = await this.redisService.lock(userLockKey, 0, req.userID)
-
     if (!scooterLock) {
       throw Error('Scooter is already reserved by others')
     }
 
+    const userLock = await this.redisService.lock(userLockKey, 0, req.userID)
     if (!userLock) {
+      await redisClient.del(scooterLockKey)
       throw Error('User already reserve other scooter')
     }
 
-    // Create reservation
-    const rent = await this.rentRepository.save(
-      new RentEntity({
-        scooter: scooter,
-        user: user,
-        status: Define.Rent.Status.reserved
+    try {
+      // Create reservation
+      const rent = await this.rentRepository.save(
+        new RentEntity({
+          scooter: scooter,
+          user: user,
+          status: Define.Rent.Status.reserved,
+          reservationExpiredAt: unixTime() + Define.Rent.defaultReservedTimeout
+        })
+      )
+
+      const reservationKey = Define.RedisKey.reservationLock(rent.id)
+      await redisClient.hset(reservationKey, <Define.RedisKey.reservationHash>{
+        userID: rent.user.id,
+        scooterID: rent.scooter.id
       })
-    )
+      await redisClient.expire(reservationKey, Define.Rent.defaultReservedTimeout)
 
-    const reservationKey = Define.RedisKey.reservationLock(rent.id)
-    await redisClient.hset(reservationKey, <Define.RedisKey.reservationHash>{
-      userID: rent.user.id,
-      scooterID: rent.scooter.id
-    })
-    await redisClient.expire(reservationKey, Define.Rent.defaultReservedTimeout)
+      scooter.status = Define.ScooterStatus.reserved
+      await this.scootersRepository.save(scooter)
 
-    return rent
+      return rentEntity2Info(rent)
+    } catch (e) {
+      await redisClient.del(scooterLockKey)
+      await redisClient.del(userLockKey)
+      throw e
+    }
   }
 
   async reservationExpired(rentID: number): Promise<void> {
@@ -101,6 +111,9 @@ export class RentService {
     const userLockKey = Define.RedisKey.userReservingLock(rent.user.id)
     await redisClient.del(scooterLockKey)
     await redisClient.del(userLockKey)
+
+    rent.scooter.status = Define.ScooterStatus.available
+    await this.scootersRepository.save(rent.scooter)
 
     rent.status = Define.Rent.Status.expired
     await this.rentRepository.save(rent)
@@ -132,11 +145,14 @@ export class RentService {
     rent.status = Define.Rent.Status.active
     rent = await this.rentRepository.save(rent)
 
-    return rent
+    rent.scooter.status = Define.ScooterStatus.inUse
+    await this.scootersRepository.save(rent.scooter)
+
+    return rentEntity2Info(rent)
   }
 
   async cancelReservation(req: CancelRentDto.Request): Promise<CancelRentDto.Response> {
-    const rent = await this.rentRepository.findOne({ where: { id: req.rentID }, relations: ['user', 'scooter'] })
+    let rent = await this.rentRepository.findOne({ where: { id: req.rentID }, relations: ['user', 'scooter'] })
 
     const redisClient = this.redisService.getClient()
     const scooterLockKey = Define.RedisKey.scooterOccupiedLock(rent.scooter.id)
@@ -145,7 +161,12 @@ export class RentService {
     await redisClient.del(userLockKey)
 
     rent.status = Define.Rent.Status.cancelled
-    return await this.rentRepository.save(rent)
+    rent = await this.rentRepository.save(rent)
+
+    rent.scooter.status = Define.ScooterStatus.available
+    await this.scootersRepository.save(rent.scooter)
+
+    return rentEntity2Info(rent)
   }
 
   async rentFinish(req: RentFinishDto.Request): Promise<RentFinishDto.Response> {
@@ -175,6 +196,6 @@ export class RentService {
       status: rent.status
     })
 
-    return rent
+    return rentEntity2Info(rent)
   }
 }
