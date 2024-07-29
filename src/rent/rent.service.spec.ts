@@ -104,6 +104,38 @@ context(__filename, () => {
     }
   })
 
+  it('Same person different scooter', async () => {
+    await service.reserve({ userID: userJosh.id, scooterID: scooterA.id })
+
+    try {
+      await service.reserve({ userID: userJosh.id, scooterID: scooterB.id })
+      assert.fail('Should not success')
+    } catch (e) {
+
+    }
+  })
+
+  it('Wrong flow', async () => {
+    let rent = await service.reserve({ userID: userJosh.id, scooterID: scooterA.id })
+
+    try {
+      await service.rentFinish({ rentID: rent.id })
+      assert.fail('Should not success')
+    } catch (e) {
+
+    }
+
+    await service.startRent({ rentID: rent.id })
+
+
+    try {
+      await service.cancelReservation({ rentID: rent.id })
+      assert.fail('Should not success')
+    } catch (e) {
+
+    }
+  })
+
   it('User not available', async () => {
     await service.reserve({ userID: userJosh.id, scooterID: scooterA.id })
 
@@ -118,7 +150,6 @@ context(__filename, () => {
   it('Test reservation expired', async () => {
     const redis = redisService.getClient()
 
-    console.log(await redis.keys('*'))
     let rent = await service.reserve({ userID: userJosh.id, scooterID: scooterA.id })
     strictEqual(rent.status, Define.Rent.Status.reserved)
 
@@ -126,7 +157,7 @@ context(__filename, () => {
     deepStrictEqual(await redis.get(`reservation_${rent.id}`), null)
 
     // iosredis-mock do not have event listener. So, call cancel manually
-    await service.cancelReservation({ rentID: rent.id })
+    await service.reservationExpired(rent.id)
 
     strictEqual(await redis.dbsize(), 0)
   }).timeout(3000)
