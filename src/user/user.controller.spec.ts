@@ -25,12 +25,11 @@ context(__filename, () => {
     await app.init()
     db = testModule.get(Connection)
     userRepository = db.getRepository(UserEntity)
-  })
 
-  it('init db', async () => {
     await userRepository.save(new UserEntity({ name: 'Josh', username: 'josh', password: '1234', status: 0 }))
     await userRepository.save(new UserEntity({ name: 'Mandy', username: 'mandy', password: '1234', status: 0 }))
   })
+
 
   it('Get all users', async () => {
     const resp = await request(app.getHttpServer()).get('/user').send()

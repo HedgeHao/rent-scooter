@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm'
+import { Column, Entity, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm'
 import { Define } from '../../../define'
 import { RentEntity } from './rent.entity'
 
@@ -8,7 +8,7 @@ export class UserEntity {
     Object.assign(this, fields)
   }
 
-  @PrimaryColumn({ type: 'int' })
+  @PrimaryGeneratedColumn({ type: 'int' })
   id!: number
 
   @Column('varchar')

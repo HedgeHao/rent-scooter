@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
-import { deepStrictEqual, strictEqual } from 'assert'
+import assert, { deepStrictEqual, strictEqual } from 'assert'
 import { Connection, Repository } from 'typeorm'
 import { KafkaModule } from '../connection/kafka/kafka.module'
 import { RentEntity } from '../connection/postgres/entity/rent.entity'
@@ -25,7 +25,7 @@ context(__filename, () => {
   let redisService: RedisService
 
   let userJosh: UserEntity, userMandy: UserEntity
-  let scooterA: ScooterEntity, scooterB: ScooterEntity, scooterC: ScooterEntity
+  let scooterA: ScooterEntity, scooterB: ScooterEntity, scooterC: ScooterEntity, scooterD: ScooterEntity, scooterE: ScooterEntity, scooterF: ScooterEntity
 
   before(async () => {
     testModule = await Test.createTestingModule({
@@ -40,15 +40,30 @@ context(__filename, () => {
 
     service = testModule.get(RentService)
     redisService = testModule.get(RedisService)
-  })
 
-  it('init db', async () => {
-    userJosh = await userRepository.save(new UserEntity({ name: 'Josh', username: 'josh', password: '1234', status: 0 }))
-    userMandy = await userRepository.save(new UserEntity({ name: 'Mandy', username: 'mandy', password: '1234', status: 0 }))
+    userJosh = await userRepository.save(new UserEntity({ name: 'Josh', username: 'josh', password: '1234', status: Define.User.Status.free }))
+    userMandy = await userRepository.save(new UserEntity({ name: 'Mandy', username: 'mandy', password: '1234', status: Define.User.Status.free }))
 
     scooterA = await scootersRepository.save(new ScooterEntity({ name: 'scooter A', power: 100.0, status: Define.Scooter.Status.available }))
     scooterB = await scootersRepository.save(new ScooterEntity({ name: 'scooter B', power: 88.8, status: Define.Scooter.Status.available }))
     scooterC = await scootersRepository.save(new ScooterEntity({ name: 'scooter C', power: 66.6, status: Define.Scooter.Status.available }))
+    scooterD = await scootersRepository.save(new ScooterEntity({ name: 'scooter D', power: 44.6, status: Define.Scooter.Status.reserved }))
+    scooterE = await scootersRepository.save(new ScooterEntity({ name: 'scooter E', power: 33.6, status: Define.Scooter.Status.inUse }))
+    scooterF = await scootersRepository.save(new ScooterEntity({ name: 'scooter F', power: 22.6, status: Define.Scooter.Status.offline }))
+  })
+
+
+  afterEach(async () => {
+    await userRepository.update(userJosh.id, { status: Define.User.Status.free })
+    await userRepository.update(userMandy.id, { status: Define.User.Status.free })
+    await scootersRepository.update(scooterA.id, { status: Define.Scooter.Status.available })
+    await scootersRepository.update(scooterB.id, { status: Define.Scooter.Status.available })
+    await scootersRepository.update(scooterC.id, { status: Define.Scooter.Status.available })
+    await scootersRepository.update(scooterD.id, { status: Define.Scooter.Status.reserved })
+    await scootersRepository.update(scooterE.id, { status: Define.Scooter.Status.inUse })
+    await scootersRepository.update(scooterF.id, { status: Define.Scooter.Status.offline })
+
+    await redisService.getClient().flushall()
   })
 
   it('Success Flow', async () => {
@@ -62,18 +77,57 @@ context(__filename, () => {
     strictEqual(rent.status, Define.Rent.Status.completed)
   })
 
+  it('Scooter not available - Reserved', async () => {
+    try {
+      service.reserve({ userID: userJosh.id, scooterID: scooterD.id })
+      assert.fail('Should not success')
+    } catch (e) {
+
+    }
+  })
+
+  it('Scooter not available - InUse', async () => {
+    try {
+      await service.reserve({ userID: userJosh.id, scooterID: scooterE.id })
+      assert.fail('Should not success')
+    } catch (e) {
+
+    }
+  })
+
+  it('Scooter not available - Offline', async () => {
+    try {
+      await service.reserve({ userID: userJosh.id, scooterID: scooterF.id })
+      assert.fail('Should not success')
+    } catch (e) {
+
+    }
+  })
+
+  it('User not available', async () => {
+    await service.reserve({ userID: userJosh.id, scooterID: scooterA.id })
+
+    try {
+      await service.reserve({ userID: userJosh.id, scooterID: scooterB.id })
+      assert.fail('Should not success')
+    } catch (e) {
+
+    }
+  })
+
   it('Test reservation expired', async () => {
     const redis = redisService.getClient()
 
+    console.log(await redis.keys('*'))
     let rent = await service.reserve({ userID: userJosh.id, scooterID: scooterA.id })
     strictEqual(rent.status, Define.Rent.Status.reserved)
 
-    await sleep(1500)
-    deepStrictEqual(await redis.get('reservation_2'), null)
+    await sleep(1100)
+    deepStrictEqual(await redis.get(`reservation_${rent.id}`), null)
 
     // iosredis-mock do not have event listener. So, call cancel manually
     await service.cancelReservation({ rentID: rent.id })
 
     strictEqual(await redis.dbsize(), 0)
-  }).timeout(5000)
+  }).timeout(3000)
 })
