@@ -177,7 +177,7 @@ export class RentService {
     await redisClient.del(scooterLockKey)
     await redisClient.del(userLockKey)
 
-    rent.status = Define.Rent.Status.cancelled
+    rent.status = Define.Rent.Status.canceled
     rent = await this.rentRepository.save(rent)
 
     rent.scooter.status = Define.Scooter.Status.available

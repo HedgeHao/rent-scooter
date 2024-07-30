@@ -49,14 +49,14 @@ export namespace Define {
     export const defaultReservedTimeout = isTestMode() ? 1 : 60
 
     export namespace Status {
-      export const cancelled = 0
+      export const canceled = 0
       export const active = 1
       export const reserved = 2
       export const completed = 3
       export const error = 4
       export const expired = 5
 
-      export type Type = typeof cancelled | typeof active | typeof reserved | typeof completed | typeof error | typeof expired
+      export type Type = typeof canceled | typeof active | typeof reserved | typeof completed | typeof error | typeof expired
     }
   }
 
