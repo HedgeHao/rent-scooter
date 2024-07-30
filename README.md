@@ -1,5 +1,9 @@
 # Rent Scooter
 
+![](imgs/db_schema.png)
+
+![](imgs/state.png)
+
 ## Postgres
 
 ### Docker
